@@ -14,7 +14,9 @@ import {
 	DidChangeConfigurationNotification,
 	CompletionItem,
 	CompletionItemKind,
-	TextDocumentPositionParams
+	TextDocumentPositionParams,
+	MarkupContent,
+	MarkupKind
 } from 'vscode-languageserver';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
@@ -191,6 +193,22 @@ connection.onCompletion(
 				label: 'JavaScript',
 				kind: CompletionItemKind.Text,
 				data: 2
+			},
+			{
+				label: 'keyboardType',
+				kind: CompletionItemKind.Property,
+				data: 3,
+				detail: "Keyboard Type for Inputs",
+				deprecated: false,
+				
+			},
+			{
+				label: 'keyboardType.number',
+				kind: CompletionItemKind.Value,
+				data: 4,
+				detail: "Numeric keyboard",
+				deprecated: false,
+				
 			}
 		];
 	}
@@ -206,6 +224,9 @@ connection.onCompletionResolve(
 		} else if (item.data === 2) {
 			item.detail = 'JavaScript details';
 			item.documentation = 'JavaScript documentation';
+		} else if (item.data === 3) {
+			item.detail = 'KeyboardType details';			
+			item.documentation = "KeyboardType documentation";			
 		}
 		return item;
 	}

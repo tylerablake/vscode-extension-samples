@@ -1,65 +1,131 @@
-/* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+import * as vscode from 'vscode';
 
-import * as path from 'path';
-import { workspace, ExtensionContext } from 'vscode';
+export function activate(context: vscode.ExtensionContext) {
 
-import {
-	LanguageClient,
-	LanguageClientOptions,
-	ServerOptions,
-	TransportKind
-} from 'vscode-languageclient';
+	let provider1 = vscode.languages.registerCompletionItemProvider('html', {
 
-let client: LanguageClient;
+		provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext) {
 
-export function activate(context: ExtensionContext) {
-	// The server is implemented in node
-	let serverModule = context.asAbsolutePath(
-		path.join('server', 'out', 'server.js')
-	);
-	// The debug options for the server
-	// --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
-	let debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
+			// a simple completion item which inserts `Hello World!`
+			// const simpleCompletion = new vscode.CompletionItem('Hello World!');
 
-	// If the extension is launched in debug mode then the debug server options are used
-	// Otherwise the run options are used
-	let serverOptions: ServerOptions = {
-		run: { module: serverModule, transport: TransportKind.ipc },
-		debug: {
-			module: serverModule,
-			transport: TransportKind.ipc,
-			options: debugOptions
+			// a completion item that inserts its text as snippet,
+			// the `insertText`-property is a `SnippetString` which will be
+			// honored by the editor.
+			// const snippetCompletion = new vscode.CompletionItem('Good part of the day');
+			// snippetCompletion.insertText = new vscode.SnippetString('Good ${1|morning,afternoon,evening|}. It is ${1}, right?');
+			// snippetCompletion.documentation = new vscode.MarkdownString("Inserts a snippet that lets you select the _appropriate_ part of the day for your greeting.");
+
+			// a completion item that can be accepted by a commit character,
+			// the `commitCharacters`-property is set which means that the completion will
+			// be inserted and then the character will be typed.
+			const commitCharacterCompletion = new vscode.CompletionItem('console');
+			commitCharacterCompletion.commitCharacters = ['.'];
+			commitCharacterCompletion.documentation = new vscode.MarkdownString('Press `.` to get `console.`');
+
+			// a completion item that retriggers IntelliSense when being accepted,
+			// the `command`-property is set which the editor will execute after 
+			// completion has been inserted. Also, the `insertText` is set so that 
+			// a space is inserted after `new`
+			// const commandCompletion = new vscode.CompletionItem('new');
+			// commandCompletion.kind = vscode.CompletionItemKind.Keyword;
+			// commandCompletion.insertText = 'new ';
+			// commandCompletion.command = { command: 'editor.action.triggerSuggest', title: 'Re-trigger completions...' };
+
+
+
+			const keyboardTypeCompletion = new vscode.CompletionItem('keyboardType');
+			keyboardTypeCompletion.commitCharacters = ['='];
+			keyboardTypeCompletion.documentation = new vscode.MarkdownString('Press `=` to get `keyboardTypes.`');
+
+			const autocapitalizationTypeCompletion = new vscode.CompletionItem('autocapitalizationType');
+			autocapitalizationTypeCompletion.commitCharacters = ['='];
+			autocapitalizationTypeCompletion.documentation = new vscode.MarkdownString('Press `=` to get `autocapitalizationTypes.`');
+
+
+
+			// return all completion items as array
+			return [								
+				commitCharacterCompletion,				
+				keyboardTypeCompletion,
+				autocapitalizationTypeCompletion
+			];
 		}
-	};
+	});
 
-	// Options to control the language client
-	let clientOptions: LanguageClientOptions = {
-		// Register the server for plain text documents
-		documentSelector: [{ scheme: 'file', language: 'plaintext' }],
-		synchronize: {
-			// Notify the server about file changes to '.clientrc files contained in the workspace
-			fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
-		}
-	};
+	const provider2 = vscode.languages.registerCompletionItemProvider(
+		'plaintext',
+		{
+			provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
 
-	// Create the language client and start the client.
-	client = new LanguageClient(
-		'languageServerExample',
-		'Language Server Example',
-		serverOptions,
-		clientOptions
+				// get all text until the `position` and check if it reads `console.`
+				// and if so then complete if `log`, `warn`, and `error`
+				let linePrefix = document.lineAt(position).text.substr(0, position.character);
+				if (!linePrefix.endsWith('console.')) {
+					return undefined;
+				}
+
+				return [
+					new vscode.CompletionItem('log', vscode.CompletionItemKind.Method),
+					new vscode.CompletionItem('warn', vscode.CompletionItemKind.Method),
+					new vscode.CompletionItem('error', vscode.CompletionItemKind.Method),
+				];
+			}
+		},
+		'.' // triggered whenever a '.' is being typed
 	);
 
-	// Start the client. This will also launch the server
-	client.start();
-}
+	const keyboardTypeProvider = vscode.languages.registerCompletionItemProvider(
+		'html',
+		{
+			provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
 
-export function deactivate(): Thenable<void> | undefined {
-	if (!client) {
-		return undefined;
-	}
-	return client.stop();
+				// get all text until the `position` and check if it reads `console.`
+				// and if so then complete if `log`, `warn`, and `error`
+				let linePrefix = document.lineAt(position).text.substr(0, position.character);
+				if (!linePrefix.endsWith('keyboardType=')) {
+					return undefined;
+				}
+
+				return [
+					new vscode.CompletionItem("'email'", vscode.CompletionItemKind.Value),
+					new vscode.CompletionItem("'phone'", vscode.CompletionItemKind.Value),
+					new vscode.CompletionItem("'number'", vscode.CompletionItemKind.Value),
+					new vscode.CompletionItem("'integer'", vscode.CompletionItemKind.Value)
+				];
+			}
+		},
+		'=' // triggered whenever a '.' is being typed
+	);
+
+	const autocapitalizationTypeProvider = vscode.languages.registerCompletionItemProvider(
+		'html',
+		{
+			provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
+
+				// get all text until the `position` and check if it reads `console.`
+				// and if so then complete if `log`, `warn`, and `error`
+				let linePrefix = document.lineAt(position).text.substr(0, position.character);
+				if (!linePrefix.endsWith('autocapitalizationType=')) {
+					return undefined;
+				}
+
+				return [
+					new vscode.CompletionItem("'none'", vscode.CompletionItemKind.Value),
+					new vscode.CompletionItem("'words'", vscode.CompletionItemKind.Value),
+					new vscode.CompletionItem("'sentences'", vscode.CompletionItemKind.Value),
+					new vscode.CompletionItem("'allCharacters'", vscode.CompletionItemKind.Value)
+				];
+			}
+		},
+		'=' // triggered whenever a '.' is being typed
+	);
+
+
+
+	context.subscriptions.push(
+		provider1,
+		provider2,
+		keyboardTypeProvider,
+		autocapitalizationTypeProvider);
 }
