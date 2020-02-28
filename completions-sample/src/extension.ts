@@ -2,6 +2,64 @@ import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
 
+
+
+	// 		provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
+
+	// 			let linePrefix = document.lineAt(position).text.substr(0, position.character);
+	// 			if (!linePrefix.endsWith('ios.')) {
+	// 				return undefined;
+	// 			}
+
+	// 			return [
+	// 				new vscode.CompletionItem('position', vscode.CompletionItemKind.Value),
+	// 				new vscode.CompletionItem('systemIcon', vscode.CompletionItemKind.Value),
+	// 			];
+	// 		}
+	// 	},
+
+
+	// let hoverProvider = vscode.languages.registerHoverProvider('html', {
+	// 	provideHover(document, position, token) {
+
+	// 		let linePrefix = document.lineAt(position).text.substr(0, position.character);
+	// 		if (!linePrefix.endsWith('autocapitalizationType')) {
+	// 			return undefined;
+	// 		}
+
+	// 		const autocapitalizationTypeHover = new vscode.Hover('autocapitalizationType');
+
+	// 		return {
+	// 			contents: ['Hover Content']
+	// 		};							
+	// 	}
+	// });
+
+	vscode.languages.registerHoverProvider('*', {
+        provideHover(document, position, token) {
+
+            const range = document.getWordRangeAtPosition(position);
+            const word = document.getText(range);
+			
+            if (word == "autocapitalizationType") {
+				
+				let autocapDescription: vscode.MarkdownString = new vscode.MarkdownString()
+				// .appendMarkdown(`AutocapitalizationType`)
+				.appendText(`Represents the auto-capitalization style for a text input.\n`)
+				// .appendMarkdown(`### Values:\n`)				
+				// .appendMarkdown(`**none** - Do not capitalize any text automatically.\n\n`)
+				// .appendMarkdown(`**words** - Do not capitalize any text automatically. \n\n`)
+				// .appendMarkdown(`**sentences** - Do not capitalize any text automatically.\n\n`)
+				// .appendMarkdown(`**allCharacters** - Do not capitalize any text automatically.\n\n`)
+				.appendMarkdown(`\n\n[{N} Reference](https://docs.nativescript.org/api-reference/modules/_ui_enums_.autocapitalizationtype)\n\n`)
+				autocapDescription.isTrusted = true;				
+				
+				return new vscode.Hover(autocapDescription);
+            }
+        }
+    });
+
+
 	let genericDescription = 'Press `=` to see possible values.';
 
 	let completionsProvider = vscode.languages.registerCompletionItemProvider('html', {
@@ -27,21 +85,21 @@ export function activate(context: vscode.ExtensionContext) {
 			tabBackgroundColorCompletion.commitCharacters = ['='];
 			tabBackgroundColorCompletion.documentation = new vscode.MarkdownString(genericDescription);
 
-			
+
 			const selectedTabTextColorCompletion = new vscode.CompletionItem('selectedTabTextColor');
 			selectedTabTextColorCompletion.commitCharacters = ['='];
 			selectedTabTextColorCompletion.documentation = new vscode.MarkdownString(genericDescription);
-			
+
 			const tabTextColorCompletion = new vscode.CompletionItem('tabTextColor');
 			tabTextColorCompletion.commitCharacters = ['='];
 			tabTextColorCompletion.documentation = new vscode.MarkdownString(genericDescription);
 
-			
+
 			const orientationCompletion = new vscode.CompletionItem('orientation');
 			tabTextColorCompletion.commitCharacters = ['='];
 			tabTextColorCompletion.documentation = new vscode.MarkdownString(genericDescription);
 
-			
+
 			const fontStyleCompletion = new vscode.CompletionItem('fontStyle');
 			fontStyleCompletion.commitCharacters = ['='];
 			fontStyleCompletion.documentation = new vscode.MarkdownString(genericDescription);
@@ -49,13 +107,13 @@ export function activate(context: vscode.ExtensionContext) {
 			const textAlignmentCompletion = new vscode.CompletionItem('textAlignment');
 			textAlignmentCompletion.commitCharacters = ['='];
 			textAlignmentCompletion.documentation = new vscode.MarkdownString(genericDescription);
-			
+
 
 			const textDecorationCompletion = new vscode.CompletionItem('textDecoration');
 			textDecorationCompletion.commitCharacters = ['='];
 			textDecorationCompletion.documentation = new vscode.MarkdownString(genericDescription);
 
-			
+
 			const textTransformCompletion = new vscode.CompletionItem('textTransform');
 			textTransformCompletion.commitCharacters = ['='];
 			textTransformCompletion.documentation = new vscode.MarkdownString(genericDescription);
@@ -82,7 +140,7 @@ export function activate(context: vscode.ExtensionContext) {
 			// commandCompletion.command = { command: 'editor.action.triggerSuggest', title: 'Re-trigger completions...' };
 
 			// return all completion items as array
-			return [				
+			return [
 				autocapitalizationTypeCompletion,
 				keyboardTypeCompletion,
 				returnKeyTypeCompletion,
@@ -204,14 +262,14 @@ export function activate(context: vscode.ExtensionContext) {
 				return [
 					new vscode.CompletionItem("'gray'", vscode.CompletionItemKind.Value),
 					new vscode.CompletionItem("'#FF0000'", vscode.CompletionItemKind.Value),
-					new vscode.CompletionItem("'rgb(200,100,200)'", vscode.CompletionItemKind.Value),					
+					new vscode.CompletionItem("'rgb(200,100,200)'", vscode.CompletionItemKind.Value),
 				];
 			}
 		},
 		'=' // triggered whenever a '.' is being typed
 	);
-	
-	
+
+
 	const selectedTabTextColorSuggestionProvider = vscode.languages.registerCompletionItemProvider(
 		'html',
 		{
@@ -225,14 +283,14 @@ export function activate(context: vscode.ExtensionContext) {
 				return [
 					new vscode.CompletionItem("'gray'", vscode.CompletionItemKind.Value),
 					new vscode.CompletionItem("'#FF0000'", vscode.CompletionItemKind.Value),
-					new vscode.CompletionItem("'rgb(200,100,200)'", vscode.CompletionItemKind.Value),					
+					new vscode.CompletionItem("'rgb(200,100,200)'", vscode.CompletionItemKind.Value),
 				];
 			}
 		},
 		'=' // triggered whenever a '.' is being typed
 	);
 
-	
+
 	const tabTextColorSuggestionProvider = vscode.languages.registerCompletionItemProvider(
 		'html',
 		{
@@ -246,14 +304,14 @@ export function activate(context: vscode.ExtensionContext) {
 				return [
 					new vscode.CompletionItem("'gray'", vscode.CompletionItemKind.Value),
 					new vscode.CompletionItem("'#FF0000'", vscode.CompletionItemKind.Value),
-					new vscode.CompletionItem("'rgb(200,100,200)'", vscode.CompletionItemKind.Value),					
+					new vscode.CompletionItem("'rgb(200,100,200)'", vscode.CompletionItemKind.Value),
 				];
 			}
 		},
 		'=' // triggered whenever a '.' is being typed
 	);
 
-	
+
 	const orientationSuggestionProvider = vscode.languages.registerCompletionItemProvider(
 		'html',
 		{
@@ -266,13 +324,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 				return [
 					new vscode.CompletionItem("'vertical'", vscode.CompletionItemKind.Value),
-					new vscode.CompletionItem("'horizontal'", vscode.CompletionItemKind.Value)					
+					new vscode.CompletionItem("'horizontal'", vscode.CompletionItemKind.Value)
 				];
 			}
 		},
 		'=' // triggered whenever a '.' is being typed
 	);
-	
+
 	const fontStyleSuggestionProvider = vscode.languages.registerCompletionItemProvider(
 		'html',
 		{
@@ -285,14 +343,14 @@ export function activate(context: vscode.ExtensionContext) {
 
 				return [
 					new vscode.CompletionItem("'normal'", vscode.CompletionItemKind.Value),
-					new vscode.CompletionItem("'italic'", vscode.CompletionItemKind.Value)					
+					new vscode.CompletionItem("'italic'", vscode.CompletionItemKind.Value)
 				];
 			}
 		},
 		'=' // triggered whenever a '.' is being typed
 	);
 
-	
+
 	const textAlignmentSuggestionProvider = vscode.languages.registerCompletionItemProvider(
 		'html',
 		{
@@ -306,7 +364,7 @@ export function activate(context: vscode.ExtensionContext) {
 				return [
 					new vscode.CompletionItem("'left'", vscode.CompletionItemKind.Value),
 					new vscode.CompletionItem("'center'", vscode.CompletionItemKind.Value),
-					new vscode.CompletionItem("'right'", vscode.CompletionItemKind.Value)					
+					new vscode.CompletionItem("'right'", vscode.CompletionItemKind.Value)
 				];
 			}
 		},
@@ -319,7 +377,7 @@ export function activate(context: vscode.ExtensionContext) {
 			provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
 
 				// Only show suggestions if inside of a textfield
-				if(!document.getText().includes("<TextField") || !document.getText().includes("<TextView")){
+				if (!document.getText().includes("<TextField") || !document.getText().includes("<TextView")) {
 					return undefined;
 				}
 
@@ -331,7 +389,7 @@ export function activate(context: vscode.ExtensionContext) {
 				return [
 					new vscode.CompletionItem("'none'", vscode.CompletionItemKind.Value),
 					new vscode.CompletionItem("'underline'", vscode.CompletionItemKind.Value),
-					new vscode.CompletionItem("'line-through'", vscode.CompletionItemKind.Value)					
+					new vscode.CompletionItem("'line-through'", vscode.CompletionItemKind.Value)
 				];
 			}
 		},
@@ -380,7 +438,7 @@ export function activate(context: vscode.ExtensionContext) {
 		'=' // triggered whenever a '.' is being typed
 	);
 
-	
+
 	const stretchSuggestionProvider = vscode.languages.registerCompletionItemProvider(
 		'html',
 		{
@@ -455,7 +513,7 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 
 				return [
-					new vscode.CompletionItem("'stretch'", vscode.CompletionItemKind.Value),					
+					new vscode.CompletionItem("'stretch'", vscode.CompletionItemKind.Value),
 					new vscode.CompletionItem("'center'", vscode.CompletionItemKind.Value),
 					new vscode.CompletionItem("'left'", vscode.CompletionItemKind.Value),
 					new vscode.CompletionItem("'right'", vscode.CompletionItemKind.Value)
@@ -467,6 +525,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		completionsProvider,
+		// hoverProvider,
 		iosSuggestionProvider,
 		keyboardTypeSuggestionProvider,
 		autocapitalizationTypeSuggestionProvider,
@@ -484,5 +543,5 @@ export function activate(context: vscode.ExtensionContext) {
 		visibilitySuggestionProvider,
 		verticalAlignmentSuggestionProvider,
 		horizontalAlignmentSuggestionProvider
-		);
+	);
 }
