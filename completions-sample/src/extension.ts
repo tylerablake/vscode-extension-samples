@@ -1,39 +1,113 @@
 import * as vscode from 'vscode';
+import { join } from 'path';
+const fs = require("fs");
+const path = require('path');
 
 export function activate(context: vscode.ExtensionContext) {
 
 
+	vscode.languages.registerDefinitionProvider('*', {
+		provideDefinition(document, position, token) {
+			const range = document.getWordRangeAtPosition(position);
+			const word = document.getText(range);
 
-	// 		provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
+			// vscode.window.showInformationMessage(`Searching for definition for '${word}'.`);
+			
+			const definitionDoc = vscode.Uri.file(join(document.fileName, "../node_modules/types/index.d.ts"));
+			// const definitionDoc = vscode.Uri.file(join(document.fileName, "~/node_modules/types/index.d.ts"));
 
-	// 			let linePrefix = document.lineAt(position).text.substr(0, position.character);
-	// 			if (!linePrefix.endsWith('ios.')) {
-	// 				return undefined;
-	// 			}
+			// searchFilesInDirectory(vscode.Uri.file(join(document.fileName, "../")),)
+			let tnsCoreModulesDirectory = join(document.fileName, "../test/node_modules/tns-core-modules");
 
-	// 			return [
-	// 				new vscode.CompletionItem('position', vscode.CompletionItemKind.Value),
-	// 				new vscode.CompletionItem('systemIcon', vscode.CompletionItemKind.Value),
-	// 			];
-	// 		}
-	// 	},
+			let tnsCoreModulesFiles = getFilesInDirectory(tnsCoreModulesDirectory, ".d.ts");			
+			
+			// let definitionFile = searchFilesInDirectory(tnsCoreModulesDirectory, word ,'.d.ts');
+
+			// if(tnsCoreModulesFiles) {
+			// 	tnsCoreModulesFiles.forEach(file => {
+			// 		const fileContent = fs.readFileSync(file);
+		
+			// 		// We want full words, so we use full word boundary in regex.
+			// 		const regex = new RegExp('\\b' + word + '\\b');
+			// 		if (regex.test(fileContent)) {
+			// 			console.log(`Your word was found in file: ${file}`);
+			// 		}
+			// 	});	
+			// }
+			
+
+			const test = vscode.Uri.file(join(document.fileName, "../test/node_modules/tns-core-modules/ui/enums/enums.d.ts"));
+			let lineNumber = 0;
+			let startPosition = 0;
+			let file = fs.readFileSync(test.fsPath, "utf8");
+
+			let arr = file.split(/\r?\n/);
+			arr.forEach((line: any, idx: number)=> {
+				if(line.toLowerCase().includes(` ${word.toLowerCase()} `)){				
+					let temp = [];
+					startPosition = (line.toLowerCase().indexOf(` ${word.toLowerCase()} `)) + 1;
+					lineNumber = (idx);
+				}
+			});
 
 
-	// let hoverProvider = vscode.languages.registerHoverProvider('html', {
-	// 	provideHover(document, position, token) {
+			if(!lineNumber && !startPosition) {
+				vscode.window.showInformationMessage(`Unable to find definition for '${word}'.`);
+			}
 
-	// 		let linePrefix = document.lineAt(position).text.substr(0, position.character);
-	// 		if (!linePrefix.endsWith('autocapitalizationType')) {
-	// 			return undefined;
-	// 		}
+			return new vscode.Location(test, new vscode.Range( new vscode.Position(lineNumber,startPosition), new vscode.Position(lineNumber,word.length)));
+		}
+	});
 
-	// 		const autocapitalizationTypeHover = new vscode.Hover('autocapitalizationType');
+	function searchFilesInDirectory(dir:any, filter:any, ext:any) {
+		if (!fs.existsSync(dir)) {
+			console.log(`Specified directory: ${dir} does not exist`);
+			return;
+		}
+	
+		const files = getFilesInDirectory(dir, ext);
+	
+		if(files) {
+			files.forEach(file => {
+				const fileContent = fs.readFileSync(file);
+		
+				// We want full words, so we use full word boundary in regex.
+				const regex = new RegExp('\\b' + filter + '\\b');
+				if (regex.test(fileContent)) {
+					console.log(`Your word was found in file: ${file}`);
+				}
+			});
+		}
 
-	// 		return {
-	// 			contents: ['Hover Content']
-	// 		};							
-	// 	}
-	// });
+	}
+	
+	// Using recursion, we find every file with the desired extention, even if its deeply nested in subfolders.
+	function getFilesInDirectory(dir: any, ext: string) {
+		if (!fs.existsSync(dir)) {
+			console.log(`Specified directory: ${dir} does not exist`);
+			return;
+		}
+	
+		let files: any[] = [];
+		fs.readdirSync(dir).forEach((file:any) => {
+			const filePath = path.join(dir, file);
+			const stat = fs.lstatSync(filePath);
+	
+			// If we hit a directory, apply our function to that dir. If we hit a file, add it to the array of files.
+			if (stat.isDirectory()) {
+				const nestedFiles = getFilesInDirectory(filePath, ext);
+				files = files.concat(nestedFiles);
+			} else {
+				if (path.extname(file) === ext) {
+					files.push(filePath);
+				}
+			}
+		});
+	
+		return files;
+	}
+
+	
 
 	vscode.languages.registerHoverProvider('*', {
         provideHover(document, position, token) {
