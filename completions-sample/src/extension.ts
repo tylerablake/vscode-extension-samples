@@ -1,15 +1,18 @@
 import * as vscode from 'vscode';
 import { join } from 'path';
+import *  as Utils from './utils';
+import { isInsideOfElement, getLastWordByDocument, getUIWidgetNameByProperty } from './utils';
 const fs = require("fs");
 const path = require('path');
 
 export function activate(context: vscode.ExtensionContext) {
 
-
+	// TODO: Future
 	vscode.languages.registerDefinitionProvider('*', {
 		provideDefinition(document, position, token) {
-			const range = document.getWordRangeAtPosition(position);
-			const word = document.getText(range);
+			// const range = document.getWordRangeAtPosition(position);
+			// const word = document.getText(range);
+			const word = getLastWordByDocument(document,position);
 
 			// vscode.window.showInformationMessage(`Searching for definition for '${word}'.`);
 			
@@ -121,10 +124,10 @@ export function activate(context: vscode.ExtensionContext) {
 				// .appendMarkdown(`AutocapitalizationType`)
 				.appendText(`Represents the auto-capitalization style for a text input.\n`)
 				// .appendMarkdown(`### Values:\n`)				
-				// .appendMarkdown(`**none** - Do not capitalize any text automatically.\n\n`)
-				// .appendMarkdown(`**words** - Do not capitalize any text automatically. \n\n`)
-				// .appendMarkdown(`**sentences** - Do not capitalize any text automatically.\n\n`)
-				// .appendMarkdown(`**allCharacters** - Do not capitalize any text automatically.\n\n`)
+				.appendMarkdown(`**none** - Do not capitalize any text automatically.\n\n`)
+				.appendMarkdown(`**words** - Do not capitalize any text automatically. \n\n`)
+				.appendMarkdown(`**sentences** - Do not capitalize any text automatically.\n\n`)
+				.appendMarkdown(`**allCharacters** - Do not capitalize any text automatically.\n\n`)
 				.appendMarkdown(`\n\n[{N} Reference](https://docs.nativescript.org/api-reference/modules/_ui_enums_.autocapitalizationtype)\n\n`)
 				autocapDescription.isTrusted = true;				
 				
@@ -140,9 +143,18 @@ export function activate(context: vscode.ExtensionContext) {
 
 		provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext) {
 
-			// a simple completion item which inserts `Hello World!`
-			// const simpleCompletion = new vscode.CompletionItem('Hello World!');
+			// For now check the current and past 2 lines to see which element to give completion for
+			let previousLine2:string = document.lineAt(position.line - 2).text;
+			let previousLine1:string = document.lineAt(position.line - 1).text;
+			let currentLineText:string = document.lineAt(position).text.substr(0, position.character);
 
+			let linesToCheck = [
+				previousLine2,
+				previousLine1,
+				currentLineText
+			];
+			
+			
 			const autocapitalizationTypeCompletion = new vscode.CompletionItem('autocapitalizationType');
 			autocapitalizationTypeCompletion.commitCharacters = ['='];
 			autocapitalizationTypeCompletion.documentation = new vscode.MarkdownString(genericDescription);
@@ -204,32 +216,38 @@ export function activate(context: vscode.ExtensionContext) {
 			const horizontalAlignmentCompletion = new vscode.CompletionItem('horizontalAlignment');
 			horizontalAlignmentCompletion.commitCharacters = ['='];
 			horizontalAlignmentCompletion.documentation = new vscode.MarkdownString(genericDescription);
-			// a completion item that retriggers IntelliSense when being accepted,
-			// the `command`-property is set which the editor will execute after 
-			// completion has been inserted. Also, the `insertText` is set so that 
-			// a space is inserted after `new`
-			// const commandCompletion = new vscode.CompletionItem('new');
-			// commandCompletion.kind = vscode.CompletionItemKind.Keyword;
-			// commandCompletion.insertText = 'new ';
-			// commandCompletion.command = { command: 'editor.action.triggerSuggest', title: 'Re-trigger completions...' };
 
 			// return all completion items as array
-			return [
-				autocapitalizationTypeCompletion,
-				keyboardTypeCompletion,
-				returnKeyTypeCompletion,
-				tabBackgroundColorCompletion,
-				selectedTabTextColorCompletion,
-				tabTextColorCompletion,
-				orientationCompletion,
-				fontStyleCompletion,
-				textAlignmentCompletion,
-				textDecorationCompletion,
-				textTransformCompletion,
-				visibilityCompletion,
-				verticalAlignmentCompletion,
-				horizontalAlignmentCompletion
-			];
+
+			let widgetName = getUIWidgetNameByProperty(getLastWordByDocument(document,position).toLowerCase());
+			console.log(`widgetName: ${widgetName}`);
+
+			if(isInsideOfElement(linesToCheck,"TextField") && widgetName.toLowerCase() === "textfield"){
+				return [
+					autocapitalizationTypeCompletion,
+					keyboardTypeCompletion,
+					returnKeyTypeCompletion,
+					fontStyleCompletion,
+					textAlignmentCompletion,
+					textDecorationCompletion,
+					textTransformCompletion,
+					visibilityCompletion,
+					verticalAlignmentCompletion,
+					horizontalAlignmentCompletion
+				];
+			}
+
+
+			if(isInsideOfElement(linesToCheck,"Label")){
+				return [
+					textAlignmentCompletion,
+					textDecorationCompletion,
+					textTransformCompletion,
+					visibilityCompletion,
+					verticalAlignmentCompletion,
+					horizontalAlignmentCompletion
+				]
+			}
 		}
 	});
 
@@ -285,7 +303,8 @@ export function activate(context: vscode.ExtensionContext) {
 		{
 			provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
 
-				let linePrefix = document.lineAt(position).text.substr(0, position.character);
+				let linePrefix = document.lineAt(position).text.substr(0, position.character);				
+
 				if (!linePrefix.endsWith('autocapitalizationType=')) {
 					return undefined;
 				}
